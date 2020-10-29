@@ -5,52 +5,20 @@ import datetime
 import sqlite3
 import time
 
-import commonFunc
+from tushareAPI import *
+from commonFunc import *
 from loggingMng import *
-
-g_token = '50b2e7a5a3786bbc2eeb9478388618ca59d7fab53c3ec97ff91a822b'
-g_pro = ts.pro_api(g_token)
-g_dbPath = r'E:/stock/db/stock.db'
-
-
-# 获取所有股票日数据
-# in ： strDate: [str]日期
-# ret : allStockDailyData: [DataFrame]所有数据
-def GetAllStockDailyData(trade_date = datetime.datetime.now().strftime('%Y%m%d')):
-    allStockDailyData = g_pro.daily(trade_date=trade_date)
-    return allStockDailyData
-
-
-def GetStockName():
-    df = g_pro.stock_basic(exchange='')
-    codes = df.ts_code.values
-    names = df.name.values
-    stockName_dict = dict(zip(codes, names))
-    return stockName_dict
-
-
-# 获取所有股票一段时间的所有数据
-# in ：  days: [int]天数,几天内  endDate: [str]结束日期  startDate: [str]开始日期
-# ret : allStockDailyData： [dict of DataFrame]{日期:数据}
-def GetAllStockData(days = -1, endDate = datetime.datetime.now().strftime('%Y%m%d'), startDate = datetime.datetime.now().strftime('%Y%m%d')):
-    allStockData_dict = {}
-    endDate_date = datetime.datetime.strptime(endDate, '%Y%m%d')
-    if days > 0:
-        startDate_date = endDate_date - datetime.timedelta(days=days-1)
-    else:
-        startDate_date = datetime.datetime.strptime(startDate,'%Y%m%d')
-    if (startDate_date > endDate_date):
-        # todo 完善日志管理
-        logging.error('日期格式不正确')
-        return allStockData_dict
-    while startDate_date <= endDate_date:
-        allStockDailyData = GetAllStockDailyData(trade_date=startDate_date.strftime('%Y%m%d'))
-        if not allStockDailyData.empty:
-            allStockData_dict[startDate_date.strftime('%Y%m%d')] = allStockDailyData
-        startDate_date += datetime.timedelta(days=1)
-    return allStockData_dict
+from globalData import *
 
 # ----------------------------------------------------------------------------------------------------------------------
+
+
+# 获取更新日期
+# ret:
+def GetUpdateDate():
+
+    pass
+
 
 def UpdateDatabase_StockCodeName():
     conn = sqlite3.connect(g_dbPath)
@@ -100,7 +68,7 @@ def UpdateDatabase_oneStock(tableName, stockDailyData, cursor):
 
     ts_code = stockDailyData.loc['ts_code']
     try:
-        cmd = r'SELECT name FROM StockCodeName WHERE ts_code = ' + "'" + ts_code + "'" + ';'
+        cmd = r'SELECT name FROM ' + g_stockCodeNameTable + r' WHERE ts_code = ' + "'" + ts_code + "'" + ';'
         name = cursor.execute(cmd).fetchall()[0][0]
     except:
         print("failed to find name.", ts_code)
@@ -138,22 +106,30 @@ def UpdateDatabase_oneStock(tableName, stockDailyData, cursor):
 
 
 def UpdateDatabase_stock():
+    # 数据库连接、提交和关闭耗时长 不要加在循环内
     conn = sqlite3.connect(g_dbPath)
     cursor = conn.cursor()
 
-    allStockData_dict = GetAllStockData(2)
+    allStockData_dict = GetAllStockData(startDate = g_defaultUpdateDate)
     for tradeDate in allStockData_dict.keys():
         dailyData = allStockData_dict[tradeDate]
         for j in range(len(dailyData)):
             stockDailyData = dailyData.loc[j]
-            tableName = r'stock' + str(stockDailyData.loc['ts_code'])[0:3]
+            codeInitial = str(stockDailyData.loc['ts_code'])[0:3]
+            if codeInitial in g_stockTableName_dict.keys():
+                tableName = g_stockTableName_dict[codeInitial]
+            else:
+                logging.error('unknown type, code = ', str(stockDailyData.loc['ts_code']))
+                tableName = g_unKnownStockTable
             UpdateDatabase_oneStock(tableName, stockDailyData, cursor)
 
-    # 数据库提交和关闭耗时长 不要加在循环内
     conn.commit()
     conn.close()
 
 
+
 if __name__ == '__main__':
+    # 1. 更新股票代码名字对应关系
     UpdateDatabase_StockCodeName()
+    # 2. 更新股票日数据（ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount）
     UpdateDatabase_stock()
