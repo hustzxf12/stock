@@ -24,7 +24,7 @@ g_unKnownStockTable = 'unKnownTypeStock'
 
 g_stockCodeNameTable = 'StockCodeName'
 
-g_defaultUpdateDate = '20200701'
+g_defaultUpdateDate = '20201010'
 
 
 

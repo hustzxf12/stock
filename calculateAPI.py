@@ -59,7 +59,7 @@ def GetStockSingleData(method,           # [str] 数据类型  'open', 'high', '
 
 # 获取某股票一段时间的单项数据平均值（eg 收盘/开盘/成交量等）
 # ret : ret_dict -- [dict]{日期: 数据平均值}
-def GetStockSigleAverDate(method,                   # [str] 数据类型  'open', 'high', 'low', 'close', 'pre_close', 'change', 'pct_chg', 'vol' 'amount'
+def GetStockSingleAverDate(method,                   # [str] 数据类型  'open', 'high', 'low', 'close', 'pre_close', 'change', 'pct_chg', 'vol' 'amount'
                           averNum=5,                # [int] n日均值  默认五日线
                           days=-1,                  # [int] 天数,几天内
                           endDate=datetime.datetime.now().strftime('%Y%m%d'),      # [str]结束日期
@@ -82,6 +82,18 @@ def GetStockSigleAverDate(method,                   # [str] 数据类型  'open'
         pass
     return ret_dict
 
+def GetStockHaData(days = -1,         # [int] 天数,几天内
+                   endDate = datetime.datetime.now().strftime('%Y%m%d'),     # [str]结束日期
+                   startDate = datetime.datetime.now().strftime('%Y%m%d'),   # [str]开始日期
+                   ts_code = '',      # [str] 股票代码
+                   stockName = ''):   # [str] 股票名称
+    ret_dict = {}
+    openDate_dict = GetStockSingleData(method='open', days=days, endDate=endDate, startDate=startDate, ts_code=ts_code, stockName=stockName)
+    closeDate_dict = GetStockSingleData(method='close', days=days, endDate=endDate, startDate=startDate, ts_code=ts_code, stockName=stockName)
+    highDate_dict = GetStockSingleData(method='high', days=days, endDate=endDate, startDate=startDate, ts_code=ts_code, stockName=stockName)
+    lowDate_dict = GetStockSingleData(method='low', days=days, endDate=endDate, startDate=startDate, ts_code=ts_code, stockName=stockName)
+    TODO
+
 
 if __name__ == '__main__':
-    GetStockSigleAverDate(averNum=5, method= 'close', ts_code ='000019.SZ', days=15)
+    GetStockSingleAverDate(averNum=5, method= 'close', ts_code ='000019.SZ', days=15)

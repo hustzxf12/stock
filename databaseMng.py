@@ -12,12 +12,50 @@ from globalData import *
 
 # ----------------------------------------------------------------------------------------------------------------------
 
+def GetCurrentTableList():
+    currentTable_list = []
+
+    conn = sqlite3.connect(g_dbPath)
+    cursor = conn.cursor()
+    try:
+        cmd = "SELECT name FROM sqlite_master where type='table' order by name"
+        result = cursor.execute(cmd).fetchall()
+        for i in range(len(result)):
+            currentTable_list.append(result[i][0])
+    except:
+        logging.error("failed to get current table list")
+        pass
+
+    conn.commit()
+    conn.close()
+    return currentTable_list
+
 
 # 获取更新日期
-# ret:
+# ret: updateDate -- 更新日期
 def GetUpdateDate():
+    currentTable_list = GetCurrentTableList()
+    print(currentTable_list)
+    conn = sqlite3.connect(g_dbPath)
+    cursor = conn.cursor()
+    updateDate = "99999999"
+    for i in range(len(currentTable_list)):
+        tableName = currentTable_list[i]
+        try:
+            cmd = "SELECT trade_date FROM %s ORDER BY trade_date DESC LIMIT 1" %(tableName)
+            latestDate = cursor.execute(cmd).fetchall()[0][0]
+            if latestDate < updateDate:
+                updateDate = latestDate
+        except:
+            pass
+    conn.commit()
+    conn.close()
+    if updateDate == "99999999":
+        logging.error("cannot calculate update date")
+        updateDate = g_defaultUpdateDate
+    logging.info("update date = %s"%updateDate)
 
-    pass
+    return updateDate
 
 
 def UpdateDatabase_StockCodeName():
@@ -25,22 +63,19 @@ def UpdateDatabase_StockCodeName():
     cursor = conn.cursor()
 
     try:
-        cursor.execute(r'DROP TABLE StockCodeName')
+        cursor.execute("DROP TABLE StockCodeName")
     except:
         logging.info("table StockCodeName is not exist")
     try:
-        cursor.execute('''CREATE TABLE IF NOT EXISTS  StockCodeName
-                      (ts_code       TEXT    PRIMARY KEY  NOT NULL,
-                       name          TEXT                 NOT NULL);''')
+        cursor.execute("CREATE TABLE IF NOT EXISTS  StockCodeName" \
+                      "(ts_code       TEXT    PRIMARY KEY  NOT NULL," \
+                       "name          TEXT                 NOT NULL);")
     except:
         logging.info('table StockCodeName already exists.')
     stockName_dict = GetStockName()
     for ts_code in stockName_dict.keys():
         name = stockName_dict[ts_code]
-        cmd = r'INSERT INTO StockCodeName (ts_code, name) VALUES (' + \
-              "'" + str(ts_code) + "'" + r',' + \
-              "'" + str(name) + "'" + \
-              r')'
+        cmd = "INSERT INTO %s (ts_code, name) VALUES ('%s', '%s');" %(g_stockCodeNameTable, ts_code, name)
         cursor.execute(cmd)
 
     conn.commit()
@@ -49,28 +84,29 @@ def UpdateDatabase_StockCodeName():
 
 def UpdateDatabase_oneStock(tableName, stockDailyData, cursor):
     try:
-        cmd = r'CREATE TABLE IF NOT EXISTS ' + tableName + \
-              r'(ts_code         TEXT           NOT NULL,' + \
-              r'name             TEXT           NOT NULL,' + \
-              r'trade_date       TEXT           NOT NULL,' + \
-              r'open             REAL           NOT NULL,' + \
-              r'high             REAL           NOT NULL,' + \
-              r'low              REAL           NOT NULL,' + \
-              r'close            REAL           NOT NULL,' + \
-              r'pre_close        REAL           NOT NULL,' + \
-              r'change           REAL           NOT NULL,' + \
-              r'pct_chg          REAL           NOT NULL,' + \
-              r'vol              REAL           NOT NULL,' + \
-              r'amount           REAL           NOT NULL, primary key(ts_code,trade_date));'
+        cmd = "CREATE TABLE IF NOT EXISTS %s "\
+              "(ts_code         TEXT           NOT NULL," \
+              "name             TEXT           NOT NULL," \
+              "trade_date       TEXT           NOT NULL," \
+              "open             REAL           NOT NULL," \
+              "high             REAL           NOT NULL," \
+              "low              REAL           NOT NULL," \
+              "close            REAL           NOT NULL," \
+              "pre_close        REAL           NOT NULL," \
+              "change           REAL           NOT NULL," \
+              "pct_chg          REAL           NOT NULL," \
+              "vol              REAL           NOT NULL," \
+              "amount           REAL           NOT NULL, primary key(ts_code,trade_date));" %(tableName)
         cursor.execute(cmd)
     except:
         print("table ", tableName, " already exists.")
 
     ts_code = stockDailyData.loc['ts_code']
     try:
-        cmd = r'SELECT name FROM ' + g_stockCodeNameTable + r' WHERE ts_code = ' + "'" + ts_code + "'" + ';'
+        cmd = "SELECT name FROM %s WHERE ts_code = '%s';" %(g_stockCodeNameTable, ts_code)
         name = cursor.execute(cmd).fetchall()[0][0]
     except:
+        name = 'unknownName'
         print("failed to find name.", ts_code)
     trade_date = stockDailyData.loc['trade_date']
     open = stockDailyData.loc['open']
@@ -84,21 +120,9 @@ def UpdateDatabase_oneStock(tableName, stockDailyData, cursor):
     amount = stockDailyData.loc['amount']
 
     try:
-        cmd = r'INSERT INTO ' + tableName + \
-              r'(ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount) VALUES (' + \
-              "'" + str(ts_code) + "'" + r',' + \
-              "'" + str(name) + "'" + r',' + \
-              "'" + str(trade_date) + "'" + r',' + \
-              str(open) + r',' + \
-              str(high) + r',' + \
-              str(low) + r',' + \
-              str(close) + r',' + \
-              str(pre_close) + r',' + \
-              str(change) + r',' + \
-              str(pct_chg) + r',' + \
-              str(vol) + r',' + \
-              str(amount) + \
-              r')'
+        cmd = "INSERT INTO %s (ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount) VALUES " \
+              "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" \
+              %(tableName, ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount)
         cursor.execute(cmd)
     except:
         # print('insert error')
@@ -110,7 +134,16 @@ def UpdateDatabase_stock():
     conn = sqlite3.connect(g_dbPath)
     cursor = conn.cursor()
 
-    allStockData_dict = GetAllStockData(startDate = g_defaultUpdateDate)
+    print(list(g_stockTableName_dict.values()))
+
+    startDate = g_defaultUpdateDate
+    if set(list(g_stockTableName_dict.values())) <= set(GetCurrentTableList()):
+        startDate = GetUpdateDate()
+    else:
+        pass
+    print("startDate = ",startDate)
+    allStockData_dict = GetAllStockData(startDate = startDate)
+
     for tradeDate in allStockData_dict.keys():
         dailyData = allStockData_dict[tradeDate]
         for j in range(len(dailyData)):
@@ -133,3 +166,4 @@ if __name__ == '__main__':
     UpdateDatabase_StockCodeName()
     # 2. 更新股票日数据（ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount）
     UpdateDatabase_stock()
+
