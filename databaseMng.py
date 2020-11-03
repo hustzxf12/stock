@@ -96,7 +96,23 @@ def UpdateDatabase_oneStock(tableName, stockDailyData, cursor):
               "change           REAL           NOT NULL," \
               "pct_chg          REAL           NOT NULL," \
               "vol              REAL           NOT NULL," \
-              "amount           REAL           NOT NULL, primary key(ts_code,trade_date));" %(tableName)
+              "amount           REAL           NOT NULL," \
+              "turnover_rate    REAL           NOT NULL," \
+              "turnover_rate_f  REAL           NOT NULL," \
+              "volume_ratio     REAL           NOT NULL," \
+              "pe               REAL           NOT NULL," \
+              "pe_ttm           REAL           NOT NULL," \
+              "pb               REAL           NOT NULL," \
+              "ps               REAL           NOT NULL," \
+              "ps_ttm           REAL           NOT NULL," \
+              "dv_ratio         REAL           NOT NULL," \
+              "dv_ttm           REAL           NOT NULL," \
+              "total_share      REAL           NOT NULL," \
+              "float_share      REAL           NOT NULL," \
+              "free_share       REAL           NOT NULL," \
+              "total_mv         REAL           NOT NULL," \
+              "circ_mv          REAL           NOT NULL," \
+              "primary key(ts_code,trade_date));" %(tableName)
         cursor.execute(cmd)
     except:
         print("table ", tableName, " already exists.")
@@ -118,11 +134,29 @@ def UpdateDatabase_oneStock(tableName, stockDailyData, cursor):
     pct_chg = stockDailyData.loc['pct_chg']
     vol = stockDailyData.loc['vol']
     amount = stockDailyData.loc['amount']
+    turnover_rate = stockDailyData.loc['turnover_rate']
+    turnover_rate_f = stockDailyData.loc['turnover_rate_f']
+    volume_ratio = stockDailyData.loc['volume_ratio']
+    pe = stockDailyData.loc['pe']
+    pe_ttm = stockDailyData.loc['pe_ttm']
+    pb = stockDailyData.loc['pb']
+    ps = stockDailyData.loc['ps']
+    ps_ttm = stockDailyData.loc['ps_ttm']
+    dv_ratio = stockDailyData.loc['dv_ratio']
+    dv_ttm = stockDailyData.loc['dv_ttm']
+    total_share = stockDailyData.loc['total_share']
+    float_share = stockDailyData.loc['float_share']
+    free_share = stockDailyData.loc['free_share']
+    total_mv = stockDailyData.loc['total_mv']
+    circ_mv = stockDailyData.loc['circ_mv']
+
 
     try:
-        cmd = "INSERT INTO %s (ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount) VALUES " \
-              "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" \
-              %(tableName, ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount)
+        cmd = "INSERT INTO %s (ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount," \
+              "turnover_rate, turnover_rate_f, volume_ratio, pe, pe_ttm, pb, ps, ps_ttm, dv_ratio, dv_ttm, total_share, float_share, free_share, total_mv, circ_mv) VALUES " \
+              "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" \
+              %(tableName, ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount,
+                turnover_rate, turnover_rate_f, volume_ratio, pe, pe_ttm, pb, ps, ps_ttm, dv_ratio, dv_ttm, total_share, float_share, free_share, total_mv, circ_mv)
         cursor.execute(cmd)
     except:
         # print('insert error')
@@ -142,7 +176,7 @@ def UpdateDatabase_stock():
     else:
         pass
     print("startDate = ",startDate)
-    allStockData_dict = GetAllStockData(startDate = startDate)
+    allStockData_dict = GetAllStockData(startDate=startDate)
 
     for tradeDate in allStockData_dict.keys():
         dailyData = allStockData_dict[tradeDate]
@@ -164,6 +198,6 @@ def UpdateDatabase_stock():
 if __name__ == '__main__':
     # 1. 更新股票代码名字对应关系
     UpdateDatabase_StockCodeName()
-    # 2. 更新股票日数据（ts_code, name, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount）
+    # 2. 更新股票日数据
     UpdateDatabase_stock()
 

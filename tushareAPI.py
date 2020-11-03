@@ -12,9 +12,11 @@ from globalData import *
 
 # 获取所有股票日数据
 # in ： strDate: [str]日期
-# ret : allStockDailyData -- [DataFrame]所有数据
+# ret : allStockDailyData -- [DataFrame]所有数据：每日行情、每日指标
 def GetAllStockDailyData(trade_date = datetime.datetime.now().strftime('%Y%m%d')):
-    allStockDailyData = g_pro.daily(trade_date=trade_date)
+    allStockDailyMarket = g_pro.daily(trade_date=trade_date)        #每日行情
+    allStockDailyBasic = g_pro.daily_basic(trade_date=trade_date)   #每日指标
+    allStockDailyData = pd.merge(allStockDailyMarket, allStockDailyBasic, on=['ts_code','trade_date','close'], how='outer')
     return allStockDailyData
 
 
@@ -50,4 +52,5 @@ def GetStockName():
     return stockName_dict
 
 
-
+if __name__ == '__main__':
+    GetAllStockDailyData('20201030')
