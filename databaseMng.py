@@ -61,21 +61,52 @@ def GetUpdateDate():
 def UpdateDatabase_StockCodeName():
     conn = sqlite3.connect(g_dbPath)
     cursor = conn.cursor()
-
+    # ['ts_code', 'symbol', 'name', 'area', 'industry', 'fullname', 'enname',
+    #  'market', 'exchange', 'curr_type', 'list_status', 'list_date',
+    #  'delist_date', 'is_hs', 'chairman', 'manager', 'secretary',
+    #  'reg_capital', 'setup_date', 'province', 'city', 'introduction',
+    #  'website', 'email', 'office', 'business_scope', 'employees',
+    #  'main_business'],
     try:
         cursor.execute("DROP TABLE StockCodeName")
     except:
         logging.info("table StockCodeName is not exist")
     try:
-        cursor.execute("CREATE TABLE IF NOT EXISTS  StockCodeName" \
+        cursor.execute("CREATE TABLE IF NOT EXISTS  " \
                       "(ts_code       TEXT    PRIMARY KEY  NOT NULL," \
-                       "name          TEXT                 NOT NULL);")
+                      "symbol         TEXT    NOT NULL," \
+                      "name           TEXT    NOT NULL," \
+                      "area           TEXT    NOT NULL," \
+                      "industry       TEXT    NOT NULL," \
+                      "fullname       TEXT    NOT NULL," \
+                      "enname         TEXT    NOT NULL," \
+                      "market         TEXT    NOT NULL," \
+                      "exchange       TEXT    NOT NULL," \
+                      "curr_type      TEXT    NOT NULL," \
+                      "list_status    TEXT    NOT NULL," \
+                      "list_date      TEXT    NOT NULL," \
+                      "delist_date    TEXT    NOT NULL," \
+                      "is_hs          TEXT    NOT NULL," \
+                      "chairman       TEXT    NOT NULL," \
+                      "manager        TEXT    NOT NULL," \
+                      "secretary      TEXT    NOT NULL," \
+                      "reg_capital    TEXT    NOT NULL," \
+                      "setup_date     TEXT    NOT NULL," \
+                      "province       TEXT    NOT NULL," \
+                      "city           TEXT    NOT NULL," \
+                      "introduction   TEXT    NOT NULL," \
+                      "website        TEXT    NOT NULL," \
+                      "email          TEXT    NOT NULL," \
+                      "office         TEXT    NOT NULL," \
+                      "business_scope TEXT    NOT NULL," \
+                      "employees      TEXT    NOT NULL," \
+                      "main_business  TEXT    NOT NULL);"%(g_stockInfoTable))
     except:
         logging.info('table StockCodeName already exists.')
-    stockName_dict = GetStockName()
+    stockName_dict = GetStockInfo()
     for ts_code in stockName_dict.keys():
         name = stockName_dict[ts_code]
-        cmd = "INSERT INTO %s (ts_code, name) VALUES ('%s', '%s');" %(g_stockCodeNameTable, ts_code, name)
+        cmd = "INSERT INTO %s (ts_code, name) VALUES ('%s', '%s');" %(g_stockInfoTable, ts_code, name)
         cursor.execute(cmd)
 
     conn.commit()
@@ -119,7 +150,7 @@ def UpdateDatabase_oneStock(tableName, stockDailyData, cursor):
 
     ts_code = stockDailyData.loc['ts_code']
     try:
-        cmd = "SELECT name FROM %s WHERE ts_code = '%s';" %(g_stockCodeNameTable, ts_code)
+        cmd = "SELECT name FROM %s WHERE ts_code = '%s';" %(g_stockInfoTable, ts_code)
         name = cursor.execute(cmd).fetchall()[0][0]
     except:
         name = 'unknownName'

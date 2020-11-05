@@ -32,7 +32,7 @@ def GetStockSingleData(method,           # [str] 数据类型  'open', 'high', '
 
     if stockName:
         try:
-            cmd = "SELECT code FROM %s WHERE name = '%s';" %(g_stockCodeNameTable, stockName)
+            cmd = "SELECT code FROM %s WHERE name = '%s';" %(g_stockInfoTable, stockName)
             ts_code = cursor.execute(cmd).fetchall()[0][0]
         except:
             logging.error('unkown stock name, stock name = ', stockName)

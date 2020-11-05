@@ -22,7 +22,7 @@ g_stockTableName_dict = {'000': 'table000',
 
 g_unKnownStockTable = 'unKnownTypeStock'
 
-g_stockCodeNameTable = 'StockCodeName'
+g_stockInfoTable = 'StockCodeName'
 
 g_defaultUpdateDate = '20201026'
 
