@@ -58,56 +58,93 @@ def GetUpdateDate():
     return updateDate
 
 
-def UpdateDatabase_StockCodeName():
+def UpdateDatabase_StockInfo():
     conn = sqlite3.connect(g_dbPath)
     cursor = conn.cursor()
-    # ['ts_code', 'symbol', 'name', 'area', 'industry', 'fullname', 'enname',
-    #  'market', 'exchange', 'curr_type', 'list_status', 'list_date',
-    #  'delist_date', 'is_hs', 'chairman', 'manager', 'secretary',
-    #  'reg_capital', 'setup_date', 'province', 'city', 'introduction',
-    #  'website', 'email', 'office', 'business_scope', 'employees',
-    #  'main_business'],
+
     try:
-        cursor.execute("DROP TABLE StockCodeName")
+        cursor.execute("DROP TABLE %s"%(g_stockInfoTable))
     except:
-        logging.info("table StockCodeName is not exist")
-    try:
-        cursor.execute("CREATE TABLE IF NOT EXISTS  " \
-                      "(ts_code       TEXT    PRIMARY KEY  NOT NULL," \
-                      "symbol         TEXT    NOT NULL," \
-                      "name           TEXT    NOT NULL," \
-                      "area           TEXT    NOT NULL," \
-                      "industry       TEXT    NOT NULL," \
-                      "fullname       TEXT    NOT NULL," \
-                      "enname         TEXT    NOT NULL," \
-                      "market         TEXT    NOT NULL," \
-                      "exchange       TEXT    NOT NULL," \
-                      "curr_type      TEXT    NOT NULL," \
-                      "list_status    TEXT    NOT NULL," \
-                      "list_date      TEXT    NOT NULL," \
-                      "delist_date    TEXT    NOT NULL," \
-                      "is_hs          TEXT    NOT NULL," \
-                      "chairman       TEXT    NOT NULL," \
-                      "manager        TEXT    NOT NULL," \
-                      "secretary      TEXT    NOT NULL," \
-                      "reg_capital    TEXT    NOT NULL," \
-                      "setup_date     TEXT    NOT NULL," \
-                      "province       TEXT    NOT NULL," \
-                      "city           TEXT    NOT NULL," \
-                      "introduction   TEXT    NOT NULL," \
-                      "website        TEXT    NOT NULL," \
-                      "email          TEXT    NOT NULL," \
-                      "office         TEXT    NOT NULL," \
-                      "business_scope TEXT    NOT NULL," \
-                      "employees      TEXT    NOT NULL," \
-                      "main_business  TEXT    NOT NULL);"%(g_stockInfoTable))
-    except:
-        logging.info('table StockCodeName already exists.')
-    stockName_dict = GetStockInfo()
-    for ts_code in stockName_dict.keys():
-        name = stockName_dict[ts_code]
-        cmd = "INSERT INTO %s (ts_code, name) VALUES ('%s', '%s');" %(g_stockInfoTable, ts_code, name)
-        cursor.execute(cmd)
+        logging.info("table %s is not exist"%(g_stockInfoTable))
+    # try:
+    cursor.execute("CREATE TABLE IF NOT EXISTS %s " \
+                  "(ts_code       TEXT    PRIMARY KEY  NOT NULL," \
+                  "symbol         TEXT    NOT NULL," \
+                  "name           TEXT    NOT NULL," \
+                  "area           TEXT    NOT NULL," \
+                  "industry       TEXT    NOT NULL," \
+                  "fullname       TEXT    NOT NULL," \
+                  "enname         TEXT    NOT NULL," \
+                  "market         TEXT    NOT NULL," \
+                  "exchange       TEXT    NOT NULL," \
+                  "curr_type      TEXT    NOT NULL," \
+                  "list_status    TEXT    NOT NULL," \
+                  "list_date      TEXT    NOT NULL," \
+                  "delist_date    TEXT    NOT NULL," \
+                  "is_hs          TEXT    NOT NULL," \
+                  "chairman       TEXT    NOT NULL," \
+                  "manager        TEXT    NOT NULL," \
+                  "secretary      TEXT    NOT NULL," \
+                  "reg_capital    TEXT    NOT NULL," \
+                  "setup_date     TEXT    NOT NULL," \
+                  "province       TEXT    NOT NULL," \
+                  "city           TEXT    NOT NULL," \
+                  "introduction   TEXT    NOT NULL," \
+                  "website        TEXT    NOT NULL," \
+                  "email          TEXT    NOT NULL," \
+                  "office         TEXT    NOT NULL," \
+                  "business_scope TEXT    NOT NULL," \
+                  "employees      TEXT    NOT NULL," \
+                  "main_business  TEXT    NOT NULL);"%(g_stockInfoTable))
+    # except:
+    #     logging.info('table StockInfo already exists.')
+    stockInfo_df = GetStockInfo()
+    for index in stockInfo_df.index:
+        # ['ts_code', 'symbol', 'name', 'area', 'industry', 'fullname', 'enname',
+        #  'market', 'exchange', 'curr_type', 'list_status', 'list_date',
+        #  'delist_date', 'is_hs', 'chairman', 'manager', 'secretary',
+        #  'reg_capital', 'setup_date', 'province', 'city', 'introduction',
+        #  'website', 'email', 'office', 'business_scope', 'employees',
+        #  'main_business'],
+        ts_code = stockInfo_df.iloc[index]['ts_code']
+        symbol = stockInfo_df.iloc[index]['symbol']
+        name = stockInfo_df.iloc[index]['name']
+        area = stockInfo_df.iloc[index]['area']
+        industry = stockInfo_df.iloc[index]['industry']
+        fullname = stockInfo_df.iloc[index]['fullname']
+        enname = stockInfo_df.iloc[index]['enname']
+        market = stockInfo_df.iloc[index]['market']
+        exchange = stockInfo_df.iloc[index]['exchange']
+        curr_type = stockInfo_df.iloc[index]['curr_type']
+        list_status = stockInfo_df.iloc[index]['list_status']
+        list_date = stockInfo_df.iloc[index]['list_date']
+        delist_date = stockInfo_df.iloc[index]['delist_date']
+        is_hs = stockInfo_df.iloc[index]['is_hs']
+        chairman = stockInfo_df.iloc[index]['chairman']
+        manager = stockInfo_df.iloc[index]['manager']
+        secretary = stockInfo_df.iloc[index]['secretary']
+        reg_capital = stockInfo_df.iloc[index]['reg_capital']
+        setup_date = stockInfo_df.iloc[index]['setup_date']
+        province = stockInfo_df.iloc[index]['province']
+        city = stockInfo_df.iloc[index]['city']
+        introduction = stockInfo_df.iloc[index]['introduction']
+        website = stockInfo_df.iloc[index]['website']
+        email = stockInfo_df.iloc[index]['email']
+        office = stockInfo_df.iloc[index]['office']
+        business_scope = stockInfo_df.iloc[index]['business_scope']
+        employees = stockInfo_df.iloc[index]['employees']
+        main_business = stockInfo_df.iloc[index]['main_business']
+        cmd = "INSERT INTO %s (ts_code, symbol, name, area, industry, fullname, enname,market, exchange, curr_type, list_status, list_date,delist_date, is_hs, chairman, " \
+              "manager, secretary,reg_capital, setup_date, province, city, introduction,website, email, office, business_scope, employees,main_business) VALUES " \
+              "('%s', '%s' , '%s', '%s', '%s', '%s' , '%s', '%s','%s', '%s' , '%s', '%s','%s', '%s' ," \
+              " '%s', '%s', '%s', '%s' , '%s', '%s','%s', '%s' , '%s', '%s','%s', '%s' , '%s', '%s');" \
+              %(g_stockInfoTable, ts_code, symbol, name, area, industry, fullname, enname,market, exchange, curr_type, list_status, list_date,delist_date, is_hs, chairman, \
+                manager, secretary,reg_capital, setup_date, province, city, introduction,website, email, office, business_scope, employees,main_business)
+
+        try:
+            cursor.execute(cmd)
+        except:
+            print(cmd)
 
     conn.commit()
     conn.close()
@@ -228,7 +265,7 @@ def UpdateDatabase_stock():
 
 if __name__ == '__main__':
     # 1. 更新股票代码名字对应关系
-    UpdateDatabase_StockCodeName()
+    UpdateDatabase_StockInfo()
     # 2. 更新股票日数据
     UpdateDatabase_stock()
 

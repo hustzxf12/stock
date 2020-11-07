@@ -42,16 +42,13 @@ def GetAllStockData(days = -1, endDate = datetime.datetime.now().strftime('%Y%m%
     return allStockData_dict
 
 
-# 获取所有股票代码和名称映射关系
+# 获取所有股票基本信息
 # ret: stockName_dict -- [dict]{代码:名称}
 def GetStockInfo():
     df_basic = g_pro.stock_basic(exchange='', fields='ts_code,symbol,name,area,industry,fullname,enname,market,exchange,curr_type,list_status,list_date,delist_date,is_hs')
-    # exchange='', fields='ts_code,symbol,name,area,industry,fullname,list_date,market'
     df_company = g_pro.stock_company(exchange='SZSE', fields='ts_code,exchange,chairman,manager,secretary,reg_capital,setup_date,province,city,introduction,website,email,office,employees,main_business,business_scope')
 
     df_data = pd.merge(df_basic, df_company, on=['ts_code','exchange'], how='outer')
-    # print(df_data.columns)
-    # print(df_data)
     return df_data
 
 
